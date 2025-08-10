@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D N×N×N Queens Puzzle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="startScreen">
+      <h1>3D Queens</h1>
+      <p class="instructions">
+        Place as many queens as possible without any attacking each other.
+        <br /><br />
+        <b>Controls:</b><br />
+        Click a cell to place/remove a queen.<br />
+        Click and drag to rotate the cube.<br />
+        Use <kbd>Arrow Keys</kbd> to slice layers. <kbd>R</kbd> to reset
+        view.<br />
+        Press <kbd>C</kbd> for a creative sandbox mode.
+      </p>
+      <br />
+      <button class="btn" id="startGameBtn">Begin</button>
+    </div>
+
+    <div id="notification-bar"></div>
+
+    <div class="ui-container">
+      <div class="ui-block controls-top-left">
+        <div>Visible Layers: <span id="layerInfo">All</span></div>
+        <div style="margin-top: 5px; font-size: 12px; color: #aaaaaa">
+          Conflicts: <span id="conflictsCount">0</span>
+        </div>
+        <div class="layer-controls">
+          <button class="up" title="Hide Top Layer [ArrowUp]">↑</button>
+          <button class="left" title="Hide Left Layer [ArrowLeft]">←</button>
+          <button class="reset" title="Reset View [R]">R</button>
+          <button class="right" title="Hide Right Layer [ArrowRight]">→</button>
+          <button class="down" title="Hide Bottom Layer [ArrowDown]">↓</button>
+        </div>
+      </div>
+
+      <div class="ui-block game-header">
+        <div class="level-title" id="levelTitle">Level 1</div>
+        <div class="level-description" id="levelDescription">
+          Place queens on the 1×1×1 board
+        </div>
+        <div class="queens-counter">
+          Queens: <span id="queensCount">0</span>
+        </div>
+      </div>
+
+      <div class="ui-block controls-top-right">
+        <div class="level-progress">
+          Personal Best: <span class="personal-best" id="personalBest">0</span>
+        </div>
+        <div style="font-size: 14px; color: #cccccc; margin-bottom: 10px">
+          Target: <span id="targetQueens">1</span>
+        </div>
+        <button class="btn next-level-btn" id="nextLevelBtn" disabled>
+          Next Level
+        </button>
+        <div class="level-navigation">
+          <button class="btn" id="prevLevelBtn">&lt;</button>
+          <input type="number" id="levelInput" value="1" min="1" />
+          <button class="btn" id="nextLevelNavBtn">&gt;</button>
+        </div>
+      </div>
+
+      <div class="ui-block controls-bottom">
+        <button class="btn" id="resetBtn">Reset Level</button>
+        <button class="btn" id="creativeModeBtn">Creative Mode [C]</button>
+      </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/",
+          "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+          "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+        }
+      }
+    </script>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
