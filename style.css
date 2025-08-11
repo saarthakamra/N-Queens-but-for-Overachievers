@@ -1,14 +1,15 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      sans-serif;
     background: #000000;
     color: #f0f0f0;
     overflow: hidden;
-}
-
-/* --- START SCREEN --- */
-#startScreen {
+  }
+  
+  /* --- START SCREEN --- */
+  #startScreen {
     position: fixed;
     top: 0;
     left: 0;
@@ -22,220 +23,281 @@ body {
     z-index: 200;
     opacity: 1;
     transition: opacity 0.5s ease-out;
-}
-#startScreen.hidden {
+  }
+  #startScreen.hidden {
     opacity: 0;
     pointer-events: none;
-}
-#startScreen h1 {
+  }
+  #startScreen h1 {
     font-size: 48px;
     font-weight: 300;
     letter-spacing: 2px;
     border-bottom: 1px solid #f0f0f0;
     padding-bottom: 10px;
     margin-bottom: 20px;
-}
-#startScreen .instructions {
+  }
+  #startScreen .instructions {
     max-width: 400px;
     text-align: center;
     line-height: 1.6;
     color: #aaaaaa;
-}
-#startScreen .instructions kbd {
+  }
+  #startScreen .instructions kbd {
     background: #333;
     border: 1px solid #555;
     padding: 2px 6px;
     font-family: monospace;
-}
-
-.ui-container {
+  }
+  
+  .ui-container {
     display: none; /* Hidden by default */
-}
-.ui-container.active {
+  }
+  .ui-container.active {
     display: block;
-}
-
-.ui-block {
+  }
+  
+  .ui-block {
     position: absolute;
     background: rgba(20, 20, 20, 0.7);
     padding: 15px;
     text-align: center;
     z-index: 100;
-    opacity: 0.15;
+    opacity: 0.6;
     transition: opacity 0.3s ease-in-out;
-}
-
-.ui-block:hover, .ui-block.is-active {
+    border-radius: 4px;
+  }
+  
+  .ui-block.is-active {
     opacity: 1;
-}
-
-.controls-top-left {
+  }
+  
+  .controls-top-left {
     top: 20px;
     left: 20px;
-}
-
-.game-header {
+  }
+  
+  .game-header {
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
     background: none;
     backdrop-filter: none;
-}
-
-.controls-top-right {
+    opacity: 0.8;
+  }
+  
+  .controls-top-right {
     top: 20px;
     right: 20px;
-}
-
-.controls-bottom {
+  }
+  
+  .controls-bottom-left {
+    position: absolute;
     bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 20px;
     display: flex;
-    gap: 15px;
-}
-
-.level-title {
+    gap: 10px;
+    align-items: flex-end; /* Align items to the bottom */
+  }
+  
+  .controls-bottom-right {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .level-title {
     font-size: 28px;
     font-weight: 600;
     margin-bottom: 8px;
-}
-
-.level-description {
-    font-size: 16px;
-    color: #aaaaaa;
-    margin-bottom: 10px;
-}
-
-.queens-counter {
+  }
+  
+  .queens-counter {
     font-size: 18px;
     font-weight: 500;
     color: #f0f0f0;
     background: rgba(30, 30, 30, 0.7);
     padding: 5px 15px;
     display: inline-block;
-}
-
-.btn {
+    border-radius: 4px;
+  }
+  
+  .btn {
     background: transparent;
-    border: 1px solid #f0f0f0;
-    color: #f0f0f0;
-    padding: 10px 20px;
-    border-radius: 0;
+    border: 1px solid #cccccc;
+    color: #cccccc;
+    padding: 10px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 16px;
-    font-weight: 400;
     transition: all 0.2s ease;
     box-shadow: 0 0 0px 0px #f0f0f0;
-}
-
-.btn:hover:not(:disabled) {
-    background: #f0f0f0;
-    color: #000000;
-    box-shadow: 0 0 10px 0px #f0f0f0;
-}
-
-.btn:disabled {
+  }
+  .btn svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+  }
+  .btn.icon-only {
+    font-size: 20px;
+  }
+  
+  .btn:hover:not(:disabled) {
+    color: #ffffff;
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 10px 0px #ffffff;
+  }
+  
+  .btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
     background: transparent;
     color: #777777;
     border-color: #777777;
-}
-
-.next-level-btn {
+  }
+  
+  .next-level-btn {
     background: rgba(76, 175, 80, 0.1);
-    border-color: #4CAF50;
-    color: #4CAF50;
-}
-
-.next-level-btn:hover:not(:disabled) {
-    background: #4CAF50;
+    border-color: #4caf50;
+    color: #4caf50;
+  }
+  
+  .next-level-btn:hover:not(:disabled) {
+    background: #4caf50;
     color: white;
-    box-shadow: 0 0 10px 0px #4CAF50;
-}
-
-.level-progress {
+    box-shadow: 0 0 10px 0px #4caf50;
+  }
+  
+  .level-progress {
     font-size: 14px;
     margin-bottom: 5px;
     color: #cccccc;
-}
-
-.personal-best, #targetQueens {
+  }
+  
+  .personal-best,
+  #targetQueens {
     font-size: 14px;
     font-weight: 600;
     color: #daa520; /* GoldenRod */
-}
-
-.controls-top-left {
-    font-size: 14px;
-}
-
-.layer-controls {
-    margin-top: 10px;
+  }
+  
+  .layer-controls {
     display: grid;
     grid-template-areas:
-        ". up ."
-        "left reset right"
-        ". down .";
+      ". up ."
+      "left reset right"
+      ". down .";
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
     text-align: center;
-}
-.layer-controls button {
+    background: rgba(20, 20, 20, 0.7);
+    padding: 15px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+  }
+  .layer-controls.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .layer-controls button {
     background: #1a1a1a;
-    border: 1px solid #f0f0f0;
-    color: #f0f0f0;
+    border: 1px solid #cccccc;
+    color: #cccccc;
     width: 30px;
     height: 30px;
-    border-radius: 0;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 18px;
     line-height: 28px;
-}
-.layer-controls button:hover {
-    background: #f0f0f0;
-    color: #000000;
-}
-.layer-controls .up { grid-area: up; }
-.layer-controls .down { grid-area: down; }
-.layer-controls .left { grid-area: left; }
-.layer-controls .right { grid-area: right; }
-.layer-controls .reset { grid-area: reset; }
-
-.level-navigation {
+  }
+  .layer-controls button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+  .layer-controls .up {
+    grid-area: up;
+  }
+  .layer-controls .down {
+    grid-area: down;
+  }
+  .layer-controls .left {
+    grid-area: left;
+  }
+  .layer-controls .right {
+    grid-area: right;
+  }
+  .layer-controls .reset {
+    grid-area: reset;
+  }
+  
+  .level-navigation {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 5px;
-    margin-top: 10px;
-}
-.level-navigation input {
+    background: rgba(20, 20, 20, 0.7);
+    padding: 15px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none;
+  }
+  .level-navigation.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .level-navigation input {
     width: 50px;
     background: #1a1a1a;
-    border: 1px solid #f0f0f0;
+    border: 1px solid #cccccc;
     color: #f0f0f0;
     text-align: center;
     font-size: 16px;
-    border-radius: 0;
-}
-.level-navigation button {
+    border-radius: 4px;
+  }
+  .level-navigation button {
     width: 30px;
-}
-
-#canvas {
+    height: 30px;
+    padding: 5px;
+  }
+  
+  #conflict-indicators {
+    display: flex;
+    gap: 4px;
+    height: 20px;
+    margin-top: 8px;
+    justify-content: center;
+    min-height: 20px;
+  }
+  .conflict-indicator {
+    width: 16px;
+    height: 16px;
+    color: #dc143c; /* Crimson */
+    filter: drop-shadow(0 0 3px #dc143c);
+  }
+  
+  #canvas {
     position: fixed;
     top: 0;
     left: 0;
     z-index: -1;
     display: block;
     cursor: grab;
-}
-#canvas.dragging {
+  }
+  #canvas.dragging {
     cursor: grabbing;
-}
-
-#notification-bar {
+  }
+  
+  #notification-bar {
     position: fixed;
     top: -100px; /* Start hidden above the screen */
     left: 50%;
@@ -249,7 +311,9 @@ body {
     text-align: center;
     transition: top 0.5s ease-in-out;
     pointer-events: none;
-}
-#notification-bar.show {
+    border-radius: 4px;
+  }
+  #notification-bar.show {
     top: 20px;
-}
+  }
+  

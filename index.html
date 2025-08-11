@@ -26,31 +26,21 @@
         Press <kbd>C</kbd> for a creative sandbox mode.
       </p>
       <br />
-      <button class="btn" id="startGameBtn">Begin</button>
+      <button class="btn" id="startGameBtn" style="width: auto; height: auto">
+        Begin
+      </button>
     </div>
 
     <div id="notification-bar"></div>
 
     <div class="ui-container">
       <div class="ui-block controls-top-left">
-        <div>Visible Layers: <span id="layerInfo">All</span></div>
-        <div style="margin-top: 5px; font-size: 12px; color: #aaaaaa">
-          Conflicts: <span id="conflictsCount">0</span>
-        </div>
-        <div class="layer-controls">
-          <button class="up" title="Hide Top Layer [ArrowUp]">↑</button>
-          <button class="left" title="Hide Left Layer [ArrowLeft]">←</button>
-          <button class="reset" title="Reset View [R]">R</button>
-          <button class="right" title="Hide Right Layer [ArrowRight]">→</button>
-          <button class="down" title="Hide Bottom Layer [ArrowDown]">↓</button>
-        </div>
+        <div id="conflict-indicators"></div>
+        <div id="layerInfo"></div>
       </div>
 
       <div class="ui-block game-header">
         <div class="level-title" id="levelTitle">Level 1</div>
-        <div class="level-description" id="levelDescription">
-          Place queens on the 1×1×1 board
-        </div>
         <div class="queens-counter">
           Queens: <span id="queensCount">0</span>
         </div>
@@ -63,9 +53,6 @@
         <div style="font-size: 14px; color: #cccccc; margin-bottom: 10px">
           Target: <span id="targetQueens">1</span>
         </div>
-        <button class="btn next-level-btn" id="nextLevelBtn" disabled>
-          Next Level
-        </button>
         <div class="level-navigation">
           <button class="btn" id="prevLevelBtn">&lt;</button>
           <input type="number" id="levelInput" value="1" min="1" />
@@ -73,9 +60,78 @@
         </div>
       </div>
 
-      <div class="ui-block controls-bottom">
-        <button class="btn" id="resetBtn">Reset Level</button>
-        <button class="btn" id="creativeModeBtn">Creative Mode [C]</button>
+      <div class="controls-bottom-left">
+        <button class="btn" id="dPadToggleBtn" title="Toggle Layer Controls">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+        <div class="layer-controls">
+          <button class="up" title="Hide Top Layer [ArrowUp]">↑</button>
+          <button class="left" title="Hide Left Layer [ArrowLeft]">←</button>
+          <button class="reset" title="Reset View [R]">R</button>
+          <button class="right" title="Hide Right Layer [ArrowRight]">→</button>
+          <button class="down" title="Hide Bottom Layer [ArrowDown]">↓</button>
+        </div>
+      </div>
+
+      <div class="controls-bottom-right">
+        <button
+          class="btn icon-only"
+          id="restoreSessionBtn"
+          title="Restore Last Session"
+        >
+          ★
+        </button>
+        <button class="btn" id="resetBtn" title="Reset Level">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+        </button>
+        <button class="btn" id="creativeModeBtn" title="Creative Mode [C]">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+        </button>
+        <button
+          class="btn next-level-btn"
+          id="nextLevelBtn"
+          title="Next Level"
+          disabled
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+        </button>
       </div>
     </div>
 
