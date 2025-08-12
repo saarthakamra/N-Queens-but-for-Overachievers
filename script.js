@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { SMAAPass } from "three/addons/postprocessing/SMAAPass.js";
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -18,6 +19,7 @@ import {
 
 // --- GAME STATE VARIABLES ---
 let scene, camera, renderer, raycaster, mouse, composer;
+let notificationTimer = null;
 let currentLevel = 1;
 let N = 1;
 let board = [];
@@ -25,9 +27,11 @@ let cubes = [];
 let wireframes = [];
 let queens = [];
 let levelCompleted = false;
+let unlockStatus = 'none'; // none, good_enough, perfect
 let hoveredCube = null;
 let isCreativeMode = false;
 let particles;
+const isTouchDevice = 'ontouchstart' in window;
 
 // --- FIREBASE & USER DATA ---
 let db, auth, userId;
@@ -47,6 +51,7 @@ let cameraAngleY = Math.PI / 4;
 let targetCameraAngleX = cameraAngleX;
 let targetCameraAngleY = cameraAngleY;
 let hiddenLayers = { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 };
+let pinchStartDistance = 0; // For touch zoom
 
 // --- INITIALIZATION ---
 function init() {
@@ -62,6 +67,7 @@ function init() {
 
   const canvas = document.getElementById("canvas");
   renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ReinhardToneMapping;
@@ -83,8 +89,15 @@ function init() {
   bloomPass.threshold = 0;
   bloomPass.strength = 0.5;
   bloomPass.radius = 0;
+  
+  const smaaPass = new SMAAPass( 
+      window.innerWidth * renderer.getPixelRatio(), 
+      window.innerHeight * renderer.getPixelRatio() 
+  );
+
   composer = new EffectComposer(renderer);
   composer.addPass(renderScene);
+  composer.addPass(smaaPass);
   composer.addPass(bloomPass);
 
   onWindowResize();
@@ -144,11 +157,22 @@ async function initializeFirebase() {
 function setupEventListeners() {
   window.addEventListener("resize", onWindowResize);
   const canvas = document.getElementById("canvas");
-  canvas.addEventListener("mousedown", onMouseDown);
-  canvas.addEventListener("mousemove", onMouseMove);
-  document.addEventListener("mouseup", onMouseUp);
-  canvas.addEventListener("mouseleave", onMouseLeave);
-  canvas.addEventListener("wheel", onMouseWheel);
+
+  if (isTouchDevice) {
+      canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+      canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+      canvas.addEventListener('touchend', onTouchEnd);
+      document.querySelector('.mobile-controls').style.display = 'block';
+      document.querySelector('.desktop-controls').style.display = 'none';
+  } else {
+      canvas.addEventListener("mousedown", onMouseDown);
+      canvas.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+      canvas.addEventListener("mouseleave", onMouseLeave);
+      canvas.addEventListener("wheel", onMouseWheel);
+      document.querySelector('.mobile-controls').style.display = 'none';
+      document.querySelector('.desktop-controls').style.display = 'block';
+  }
   document.addEventListener("keydown", onKeyDown);
 
   document
@@ -226,20 +250,21 @@ function onKeyDown(event) {
 function onMouseDown(event) {
   if (event.target.id !== "canvas") return;
   isDragging = false;
-  dragStartPos = { x: event.clientX, y: event.clientY };
+  dragStartPos = { x: event.clientX, y: event.clientY, time: Date.now() };
   previousMousePosition = { x: event.clientX, y: event.clientY };
   document.getElementById("canvas").classList.add("dragging");
 }
 
 function onMouseMove(event) {
   if (!dragStartPos) {
-    updateHoverEffect(event);
+    if (!isTouchDevice) updateHoverEffect(event);
     return;
   }
   const deltaSq =
     (event.clientX - dragStartPos.x) ** 2 +
     (event.clientY - dragStartPos.y) ** 2;
   if (deltaSq > 16) isDragging = true;
+
   if (isDragging) {
     const deltaX = event.clientX - previousMousePosition.x;
     const deltaY = event.clientY - previousMousePosition.y;
@@ -260,6 +285,64 @@ function onMouseUp(event) {
   dragStartPos = null;
   isDragging = false;
   document.getElementById("canvas").classList.remove("dragging");
+}
+
+function onTouchStart(event) {
+    event.preventDefault();
+    if (event.touches.length === 1) {
+        const touch = event.touches[0];
+        isDragging = false;
+        dragStartPos = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+        previousMousePosition = { x: touch.clientX, y: touch.clientY };
+    } else if (event.touches.length === 2) {
+        dragStartPos = null; // Prevent tap while zooming
+        const dx = event.touches[0].clientX - event.touches[1].clientX;
+        const dy = event.touches[0].clientY - event.touches[1].clientY;
+        pinchStartDistance = Math.sqrt(dx * dx + dy * dy);
+    }
+    document.getElementById("canvas").classList.add("dragging");
+}
+
+function onTouchMove(event) {
+    event.preventDefault();
+    if (event.touches.length === 1 && dragStartPos) {
+        const touch = event.touches[0];
+        const deltaSq = (touch.clientX - dragStartPos.x) ** 2 + (touch.clientY - dragStartPos.y) ** 2;
+        if (deltaSq > 100) isDragging = true; // Higher threshold for touch to avoid accidental drags
+
+        if (isDragging) {
+            const deltaX = touch.clientX - previousMousePosition.x;
+            const deltaY = touch.clientY - previousMousePosition.y;
+            targetCameraAngleY -= deltaX * 0.008;
+            targetCameraAngleX += deltaY * 0.008;
+            targetCameraAngleX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, targetCameraAngleX));
+            previousMousePosition = { x: touch.clientX, y: touch.clientY };
+        }
+    } else if (event.touches.length === 2) {
+        isDragging = true; // Ensure no tap is registered
+        const dx = event.touches[0].clientX - event.touches[1].clientX;
+        const dy = event.touches[0].clientY - event.touches[1].clientY;
+        const pinchEndDistance = Math.sqrt(dx * dx + dy * dy);
+        const deltaDistance = pinchStartDistance - pinchEndDistance;
+        
+        cameraDistance += deltaDistance * 0.05;
+        cameraDistance = Math.max(N + 2, Math.min(40, cameraDistance));
+        updateCameraPosition();
+        
+        pinchStartDistance = pinchEndDistance;
+    }
+}
+
+function onTouchEnd(event) {
+    if (dragStartPos && !isDragging) {
+        const timeElapsed = Date.now() - dragStartPos.time;
+        if (timeElapsed < 300) { // Treat as a tap if held for less than 300ms
+             handleCanvasClick(event.changedTouches[0]);
+        }
+    }
+    dragStartPos = null;
+    isDragging = false;
+    document.getElementById("canvas").classList.remove("dragging");
 }
 
 function onMouseLeave() {
@@ -423,6 +506,7 @@ function startLevel(level, initialBoard = null) {
   currentLevel = level;
   N = level;
   levelCompleted = false;
+  unlockStatus = 'none'; // Reset unlock status for new level
 
   document
     .querySelectorAll(".ui-block")
@@ -455,6 +539,7 @@ function startLevel(level, initialBoard = null) {
 
 function resetLevel() {
   levelCompleted = false;
+  unlockStatus = 'none';
   document
     .querySelectorAll(".ui-block")
     .forEach((el) => el.classList.remove("is-active"));
@@ -643,40 +728,44 @@ function updateDisplay() {
   if (isCreativeMode) return;
 
   // --- SCORE & LEVEL COMPLETION LOGIC ---
-  if (
-    conflictSet.size === 0 &&
-    queens.length > (bestScores[N] || 0)
-  ) {
+  if (conflictSet.size === 0 && queens.length > (bestScores[N] || 0)) {
     bestScores[N] = queens.length;
     document.getElementById("personalBest").textContent = bestScores[N];
     saveGameData();
   }
 
   const targetQueens = getLevelTarget(N);
-  if (
-    conflictSet.size === 0 &&
-    queens.length >= targetQueens &&
-    !levelCompleted
-  ) {
-    levelCompleted = true;
+  let newUnlockStatus = 'none';
+  let message = "";
+
+  if (conflictSet.size === 0) {
+    if (queens.length >= targetQueens) {
+      newUnlockStatus = 'perfect';
+      message = queens.length > targetQueens 
+        ? `New Record! ${queens.length} Queens!` 
+        : `Perfect! Target Reached!`;
+    } else if (queens.length === N && N > 0) {
+      newUnlockStatus = 'good_enough';
+      message = "Not optimal, but you've unlocked the next level!";
+    }
+  }
+
+  // Update UI if the status has changed or improved
+  if (newUnlockStatus !== 'none') {
+    if (newUnlockStatus !== unlockStatus) {
+      showSuccessMessage(message);
+      unlockStatus = newUnlockStatus;
+      document.querySelectorAll(".ui-block").forEach((el) => el.classList.add("is-active"));
+    }
     document.getElementById("nextLevelBtn").disabled = false;
-    document
-      .querySelectorAll(".ui-block")
-      .forEach((el) => el.classList.add("is-active"));
-    const message =
-      queens.length > targetQueens
-        ? `New Record! You found ${queens.length}!`
-        : `Perfect! Target reached!`;
-    showSuccessMessage(message);
-  } else if (
-    levelCompleted &&
-    (conflictSet.size > 0 || queens.length < targetQueens)
-  ) {
-    levelCompleted = false;
+    levelCompleted = true;
+  } else {
+    if (unlockStatus !== 'none') {
+      document.querySelectorAll(".ui-block").forEach((el) => el.classList.remove("is-active"));
+    }
     document.getElementById("nextLevelBtn").disabled = true;
-    document
-      .querySelectorAll(".ui-block")
-      .forEach((el) => el.classList.remove("is-active"));
+    levelCompleted = false;
+    unlockStatus = 'none';
   }
 }
 
@@ -722,10 +811,19 @@ function setWireframeHighlight(cube, isHighlighted) {
 
 function showSuccessMessage(message) {
   const bar = document.getElementById("notification-bar");
+
+  // Cancel any previous timer to prevent it from hiding the new message prematurely
+  if (notificationTimer) {
+    clearTimeout(notificationTimer);
+  }
+
   bar.textContent = message;
   bar.classList.add("show");
-  setTimeout(() => {
+
+  // Set a new timer to hide the bar and store its ID
+  notificationTimer = setTimeout(() => {
     bar.classList.remove("show");
+    notificationTimer = null; // Clear the timer ID once it has run
   }, 3500);
 }
 

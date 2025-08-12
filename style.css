@@ -41,7 +41,11 @@ body {
     text-align: center;
     line-height: 1.6;
     color: #aaaaaa;
+    padding: 0 15px;
   }
+   #startScreen .instructions .mobile-controls {
+    display: none;
+   }
   #startScreen .instructions kbd {
     background: #333;
     border: 1px solid #555;
@@ -314,6 +318,77 @@ body {
     border-radius: 4px;
   }
   #notification-bar.show {
-    top: 20px;
+    top: 20px; /* Default position for desktop */
+  }
+
+/* --- RESPONSIVE STYLES FOR MOBILE --- */
+@media (max-width: 768px) {
+  .ui-block {
+    padding: 10px;
+  }
+
+  .game-header {
+    top: 15px;
+    width: 100%;
+  }
+
+  .controls-top-left {
+    top: auto;
+    bottom: 20px;
+    left: 20px;
+    background: none;
+  }
+
+  .controls-top-right {
+    top: 100px; 
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+    width: calc(100% - 40px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: none; /* Make the container invisible */
+    padding: 0;       /* Remove extra spacing */
+  }
+
+  .controls-bottom-left {
+    bottom: 100px;
+    left: 15px;
+  }
+
+  #dPadToggleBtn {
+      display: none; /* Hide toggle, always show d-pad */
+  }
+
+  .layer-controls {
+      opacity: 0.8;
+      pointer-events: auto;
+      padding: 10px;
+      background: none; /* Make the d-pad container invisible */
+  }
+   .layer-controls button {
+     width: 40px;
+     height: 40px;
+     font-size: 22px;
+   }
+  
+  .controls-bottom-right {
+    gap: 5px;
+    right: 15px;
+    bottom: 15px;
   }
   
+  .btn {
+    width: 48px;
+    height: 48px;
+  }
+  .btn svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  #notification-bar.show {
+    top: 70px; /* Overrides the desktop position to be lower on mobile */
+  }
+}
