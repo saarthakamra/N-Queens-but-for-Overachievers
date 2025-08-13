@@ -43,7 +43,6 @@
 
     <div class="ui-container">
       <div class="ui-block controls-top-left">
-        <div id="conflict-indicators"></div>
         <div id="layerInfo"></div>
       </div>
 
@@ -52,6 +51,7 @@
         <div class="queens-counter">
           Queens: <span id="queensCount">0</span>
         </div>
+        <div id="conflict-indicators"></div>
       </div>
 
       <div class="ui-block controls-top-right">
@@ -68,19 +68,22 @@
         </div>
       </div>
 
-      <div class="controls-bottom-left">
-        <button class="btn" id="dPadToggleBtn" title="Toggle Layer Controls">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </button>
+      <div class="bottom-bar">
+        <div class="controls-bottom-left">
+          <button class="btn" id="dPadToggleBtn" title="Toggle Layer Controls">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
+
         <div class="layer-controls">
           <button class="up" title="Hide Top Layer [ArrowUp]">↑</button>
           <button class="left" title="Hide Left Layer [ArrowLeft]">←</button>
@@ -88,58 +91,58 @@
           <button class="right" title="Hide Right Layer [ArrowRight]">→</button>
           <button class="down" title="Hide Bottom Layer [ArrowDown]">↓</button>
         </div>
-      </div>
 
-      <div class="controls-bottom-right">
-        <button
-          class="btn icon-only"
-          id="restoreSessionBtn"
-          title="Restore Last Session"
-        >
-          ★
-        </button>
-        <button class="btn" id="resetBtn" title="Reset Level">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+        <div class="controls-bottom-right">
+          <button
+            class="btn icon-only"
+            id="restoreSessionBtn"
+            title="Restore Last Session"
           >
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-          </svg>
-        </button>
-        <button class="btn" id="creativeModeBtn" title="Creative Mode [C]">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            ★
+          </button>
+          <button class="btn" id="resetBtn" title="Reset Level">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+          </button>
+          <button class="btn" id="creativeModeBtn" title="Creative Mode [C]">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+            </svg>
+          </button>
+          <button
+            class="btn next-level-btn"
+            id="nextLevelBtn"
+            title="Next Level"
+            disabled
           >
-            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-          </svg>
-        </button>
-        <button
-          class="btn next-level-btn"
-          id="nextLevelBtn"
-          title="Next Level"
-          disabled
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
