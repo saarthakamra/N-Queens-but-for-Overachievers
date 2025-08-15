@@ -164,6 +164,13 @@ body {
     box-shadow: 0 0 10px 0px #ffffff;
   }
   
+  .btn.active {
+    color: #ffffff;
+    border-color: #00ffff;
+    background: rgba(0, 255, 255, 0.15);
+    box-shadow: 0 0 10px 0px #00ffff;
+  }
+
   .btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
@@ -336,20 +343,14 @@ body {
 
   .game-header {
     top: 15px;
-    width: 100%;
-    /* Stack header items vertically */
+    width: auto; /* CORRECTED: Prevents the header from covering the top-left button */
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  /* Hide the old container for conflict indicators */
-  .controls-top-left {
-    display: none;
-  }
-
   .controls-top-right {
-    top: 130px; /* Pushed down to avoid overlap */
+    top: 130px; 
     left: 50%;
     transform: translateX(-50%);
     right: auto;
@@ -365,29 +366,28 @@ body {
     padding: 15px;
   }
 
-  /* Make the D-pad toggle button visible */
   #dPadToggleBtn {
       display: flex;
   }
 
   .layer-controls {
-    background: none; /* Make container transparent */
+    background: none; 
     padding: 10px;
   }
 
    .layer-controls button {
-     width: 40px; /* Restored D-pad button size */
+     width: 40px; 
      height: 40px;
      font-size: 22px;
    }
   
   .controls-bottom-right {
     gap: 5px;
-    flex-direction: column; /* Stack buttons vertically */
+    flex-direction: column; 
   }
   
   .btn {
-    width: 48px; /* Restored larger button size */
+    width: 48px; 
     height: 48px;
   }
   .btn svg {

@@ -30,8 +30,15 @@ let levelCompleted = false;
 let unlockStatus = 'none'; // none, good_enough, perfect
 let hoveredCube = null;
 let isCreativeMode = false;
+let isAssistMode = false; // State for hint mode, default off
 let particles;
 const isTouchDevice = 'ontouchstart' in window;
+
+// --- HIGHLIGHT COLORS ---
+const VALID_COLOR = new THREE.Color(0x2ecc71); // Green
+const INVALID_COLOR = new THREE.Color(0xFFFFFF); // White for invalid wireframes
+const CONFLICT_COLOR = new THREE.Color(0xdc143c); // Crimson for conflicting queens
+const HOVER_COLOR = new THREE.Color(0x00ffff); // Cyan
 
 // --- FIREBASE & USER DATA ---
 let db, auth, userId;
@@ -154,6 +161,17 @@ async function initializeFirebase() {
   }
 }
 
+// Helper function to add listeners reliably on mobile and desktop
+function addButtonListener(element, handler) {
+    if (!element) return;
+    const eventName = isTouchDevice ? 'touchstart' : 'click';
+    element.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        handler(event);
+    });
+}
+
 function setupEventListeners() {
   window.addEventListener("resize", onWindowResize);
   const canvas = document.getElementById("canvas");
@@ -167,7 +185,7 @@ function setupEventListeners() {
   } else {
       canvas.addEventListener("mousedown", onMouseDown);
       canvas.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+      canvas.addEventListener("mouseup", onMouseUp);
       canvas.addEventListener("mouseleave", onMouseLeave);
       canvas.addEventListener("wheel", onMouseWheel);
       document.querySelector('.mobile-controls').style.display = 'none';
@@ -175,46 +193,33 @@ function setupEventListeners() {
   }
   document.addEventListener("keydown", onKeyDown);
 
-  document
-    .querySelector(".layer-controls .up")
-    .addEventListener("click", () => changeRelativeLayer("up"));
-  document
-    .querySelector(".layer-controls .down")
-    .addEventListener("click", () => changeRelativeLayer("down"));
-  document
-    .querySelector(".layer-controls .left")
-    .addEventListener("click", () => changeRelativeLayer("left"));
-  document
-    .querySelector(".layer-controls .right")
-    .addEventListener("click", () => changeRelativeLayer("right"));
-  document
-    .querySelector(".layer-controls .reset")
-    .addEventListener("click", () => changeLayer("reset"));
+  // Use the new helper for all buttons
+  addButtonListener(document.getElementById("assistModeBtn"), () => {
+      isAssistMode = !isAssistMode;
+      document.getElementById("assistModeBtn").classList.toggle("active", isAssistMode);
+      updateDisplay();
+  });
 
-  document
-    .getElementById("nextLevelBtn")
-    .addEventListener("click", nextLevel);
-  document.getElementById("resetBtn").addEventListener("click", resetLevel);
-  document
-    .getElementById("creativeModeBtn")
-    .addEventListener("click", toggleCreativeMode);
-  document
-    .getElementById("restoreSessionBtn")
-    .addEventListener("click", restoreLastSession);
+  addButtonListener(document.querySelector(".layer-controls .up"), () => changeRelativeLayer("up"));
+  addButtonListener(document.querySelector(".layer-controls .down"), () => changeRelativeLayer("down"));
+  addButtonListener(document.querySelector(".layer-controls .left"), () => changeRelativeLayer("left"));
+  addButtonListener(document.querySelector(".layer-controls .right"), () => changeRelativeLayer("right"));
+  addButtonListener(document.querySelector(".layer-controls .reset"), () => changeLayer("reset"));
 
-  document
-    .getElementById("prevLevelBtn")
-    .addEventListener("click", () => navigateLevel(-1));
-  document
-    .getElementById("nextLevelNavBtn")
-    .addEventListener("click", () => navigateLevel(1));
+  addButtonListener(document.getElementById("nextLevelBtn"), nextLevel);
+  addButtonListener(document.getElementById("resetBtn"), resetLevel);
+  addButtonListener(document.getElementById("creativeModeBtn"), toggleCreativeMode);
+  addButtonListener(document.getElementById("restoreSessionBtn"), restoreLastSession);
+  
+  addButtonListener(document.getElementById("prevLevelBtn"), () => navigateLevel(-1));
+  addButtonListener(document.getElementById("nextLevelNavBtn"), () => navigateLevel(1));
+  addButtonListener(document.getElementById("dPadToggleBtn"), () => {
+    document.querySelector(".layer-controls").classList.toggle("visible");
+  });
+  
   document.getElementById("levelInput").addEventListener("change", (e) => {
     const level = parseInt(e.target.value);
     if (level > 0) startLevel(level);
-  });
-
-  document.getElementById("dPadToggleBtn").addEventListener("click", () => {
-    document.querySelector(".layer-controls").classList.toggle("visible");
   });
 }
 
@@ -288,14 +293,17 @@ function onMouseUp(event) {
 }
 
 function onTouchStart(event) {
-    event.preventDefault();
+    if (event.target.id === 'canvas') {
+        event.preventDefault();
+    }
+    
     if (event.touches.length === 1) {
         const touch = event.touches[0];
         isDragging = false;
         dragStartPos = { x: touch.clientX, y: touch.clientY, time: Date.now() };
         previousMousePosition = { x: touch.clientX, y: touch.clientY };
     } else if (event.touches.length === 2) {
-        dragStartPos = null; // Prevent tap while zooming
+        dragStartPos = null;
         const dx = event.touches[0].clientX - event.touches[1].clientX;
         const dy = event.touches[0].clientY - event.touches[1].clientY;
         pinchStartDistance = Math.sqrt(dx * dx + dy * dy);
@@ -304,11 +312,14 @@ function onTouchStart(event) {
 }
 
 function onTouchMove(event) {
-    event.preventDefault();
+    if (event.target.id === 'canvas') {
+        event.preventDefault();
+    }
+
     if (event.touches.length === 1 && dragStartPos) {
         const touch = event.touches[0];
         const deltaSq = (touch.clientX - dragStartPos.x) ** 2 + (touch.clientY - dragStartPos.y) ** 2;
-        if (deltaSq > 100) isDragging = true; // Higher threshold for touch to avoid accidental drags
+        if (deltaSq > 100) isDragging = true;
 
         if (isDragging) {
             const deltaX = touch.clientX - previousMousePosition.x;
@@ -319,7 +330,7 @@ function onTouchMove(event) {
             previousMousePosition = { x: touch.clientX, y: touch.clientY };
         }
     } else if (event.touches.length === 2) {
-        isDragging = true; // Ensure no tap is registered
+        isDragging = true;
         const dx = event.touches[0].clientX - event.touches[1].clientX;
         const dy = event.touches[0].clientY - event.touches[1].clientY;
         const pinchEndDistance = Math.sqrt(dx * dx + dy * dy);
@@ -336,7 +347,7 @@ function onTouchMove(event) {
 function onTouchEnd(event) {
     if (dragStartPos && !isDragging) {
         const timeElapsed = Date.now() - dragStartPos.time;
-        if (timeElapsed < 300) { // Treat as a tap if held for less than 300ms
+        if (timeElapsed < 300) {
              handleCanvasClick(event.changedTouches[0]);
         }
     }
@@ -372,10 +383,13 @@ function updateHoverEffect(event) {
   const intersects = raycaster.intersectObjects(
     cubes.filter((c) => c.visible)
   );
+
   if (intersects.length > 0) {
     const intersectedObject = intersects[0].object;
     if (hoveredCube !== intersectedObject) {
-      if (hoveredCube) setWireframeHighlight(hoveredCube, false);
+      if (hoveredCube) {
+        setWireframeHighlight(hoveredCube, false);
+      }
       hoveredCube = intersectedObject;
       setWireframeHighlight(hoveredCube, true);
     }
@@ -506,11 +520,12 @@ function startLevel(level, initialBoard = null) {
   currentLevel = level;
   N = level;
   levelCompleted = false;
-  unlockStatus = 'none'; // Reset unlock status for new level
+  unlockStatus = 'none';
 
-  document
-    .querySelectorAll(".ui-block")
-    .forEach((el) => el.classList.remove("is-active"));
+  document.querySelector(".game-header").classList.add("is-active");
+  document.querySelector(".controls-top-left").classList.add("is-active");
+  document.querySelector(".controls-top-right").classList.remove("is-active");
+  
   document.getElementById("levelInput").value = currentLevel;
   document.getElementById("levelTitle").textContent = isCreativeMode
     ? `Creative Mode`
@@ -540,9 +555,11 @@ function startLevel(level, initialBoard = null) {
 function resetLevel() {
   levelCompleted = false;
   unlockStatus = 'none';
-  document
-    .querySelectorAll(".ui-block")
-    .forEach((el) => el.classList.remove("is-active"));
+  
+  document.querySelector(".game-header").classList.add("is-active");
+  document.querySelector(".controls-top-left").classList.add("is-active");
+  document.querySelector(".controls-top-right").classList.remove("is-active");
+  
   document.getElementById("nextLevelBtn").disabled = true;
   initializeBoard();
   updateDisplay();
@@ -660,21 +677,17 @@ function createBoardGeometry() {
         scene.add(solidCube);
         cubes.push(solidCube);
 
-        const distFromEdge = Math.min(x, N - 1 - x, y, N - 1 - y, z, N - 1 - z);
-        const opacity = Math.max(0.05, 0.8 - distFromEdge * 0.25);
-        const color = distFromEdge === 0 ? 0xf0f0f0 : 0xaaaaaa;
-
         const wireframeMaterial = new THREE.LineBasicMaterial({
-          color,
+          color: 0xaaaaaa,
           transparent: true,
-          opacity,
+          opacity: 0.5,
         });
         const wireframe = new THREE.LineSegments(
           wireframeGeometry,
           wireframeMaterial
         );
         wireframe.position.copy(solidCube.position);
-        wireframe.userData = { x, y, z };
+        wireframe.userData = { x, y, z, baseColor: new THREE.Color(), baseOpacity: 0.5 };
         scene.add(wireframe);
         wireframes.push(wireframe);
       }
@@ -689,9 +702,8 @@ function updateDisplay() {
 
   queens.forEach((q) => scene.remove(q));
   queens = [];
-
-  for (let z = 0; z < N; z++)
-    for (let y = 0; y < N; y++)
+  for (let z = 0; z < N; z++) {
+    for (let y = 0; y < N; y++) {
       for (let x = 0; x < N; x++) {
         if (board[z][y][x]) {
           const queenGeometry = new THREE.SphereGeometry(0.3, 16, 16);
@@ -706,28 +718,70 @@ function updateDisplay() {
           queens.push(queen);
         }
       }
+    }
+  }
 
+  wireframes.forEach(wireframe => {
+    const { x, y, z } = wireframe.userData;
+
+    if (isAssistMode) {
+        if (board[z][y][x]) {
+            // CORRECTED: An occupied cube in assist mode should look like a default cube
+            const distFromEdge = Math.min(x, N - 1 - x, y, N - 1 - y, z, N - 1 - z);
+            wireframe.material.color.set(getWireframeDefaultColor(x, y, z));
+            wireframe.material.opacity = Math.max(0.05, 0.8 - distFromEdge * 0.25);
+        } else { 
+            let isAttacked = false;
+            if (queens.length > 0) {
+                for (const queen of queens) {
+                    if (isQueenAttacking(x, y, z, queen.userData.x, queen.userData.y, queen.userData.z)) {
+                        isAttacked = true;
+                        break;
+                    }
+                }
+            }
+
+            if (isAttacked) {
+                wireframe.material.color.set(INVALID_COLOR);
+                const distFromEdge = Math.min(x, N - 1 - x, y, N - 1 - y, z, N - 1 - z);
+                wireframe.material.opacity = Math.max(0.05, 0.8 - distFromEdge * 0.25);
+            } else {
+                wireframe.material.color.set(VALID_COLOR);
+                wireframe.material.opacity = 0.6;
+            }
+        }
+    } else {
+        const distFromEdge = Math.min(x, N - 1 - x, y, N - 1 - y, z, N - 1 - z);
+        wireframe.material.color.set(getWireframeDefaultColor(x, y, z));
+        wireframe.material.opacity = Math.max(0.05, 0.8 - distFromEdge * 0.25);
+    }
+    
+    wireframe.userData.baseColor.copy(wireframe.material.color);
+    wireframe.userData.baseOpacity = wireframe.material.opacity;
+  });
+  
   const { count: conflictCount, set: conflictSet } = getConflicts(queens);
   queens.forEach((queen) => {
-    if (conflictSet.has(queen)) queen.material.color.set(0xdc143c);
+    if (conflictSet.has(queen)) {
+      queen.material.color.set(CONFLICT_COLOR);
+    }
   });
 
   updateLayerVisibility();
-
+  
   document.getElementById("queensCount").textContent = queens.length;
-
+  
   const conflictContainer = document.getElementById("conflict-indicators");
   conflictContainer.innerHTML = "";
   for (let i = 0; i < conflictSet.size; i++) {
     const indicator = document.createElement("div");
     indicator.classList.add("conflict-indicator");
-    indicator.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>`;
+    indicator.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>`;
     conflictContainer.appendChild(indicator);
   }
 
   if (isCreativeMode) return;
 
-  // --- SCORE & LEVEL COMPLETION LOGIC ---
   if (conflictSet.size === 0 && queens.length > (bestScores[N] || 0)) {
     bestScores[N] = queens.length;
     document.getElementById("personalBest").textContent = bestScores[N];
@@ -744,24 +798,20 @@ function updateDisplay() {
       message = queens.length > targetQueens 
         ? `New Record! ${queens.length} Queens!` 
         : `Perfect! Target Reached!`;
-    } else if (queens.length === N && N > 0) {
-      newUnlockStatus = 'good_enough';
-      message = "Not optimal, but you've unlocked the next level!";
     }
   }
 
-  // Update UI if the status has changed or improved
   if (newUnlockStatus !== 'none') {
     if (newUnlockStatus !== unlockStatus) {
       showSuccessMessage(message);
       unlockStatus = newUnlockStatus;
-      document.querySelectorAll(".ui-block").forEach((el) => el.classList.add("is-active"));
+      document.querySelector(".controls-top-right").classList.add("is-active");
     }
     document.getElementById("nextLevelBtn").disabled = false;
     levelCompleted = true;
   } else {
     if (unlockStatus !== 'none') {
-      document.querySelectorAll(".ui-block").forEach((el) => el.classList.remove("is-active"));
+      document.querySelector(".controls-top-right").classList.remove("is-active");
     }
     document.getElementById("nextLevelBtn").disabled = true;
     levelCompleted = false;
@@ -786,44 +836,25 @@ function setWireframeHighlight(cube, isHighlighted) {
   const wireframe = findWireframeForCube(cube);
   if (wireframe) {
     if (isHighlighted) {
-      wireframe.material.color.set(0x00ffff);
+      wireframe.material.color.set(HOVER_COLOR);
       wireframe.material.opacity = 1.0;
     } else {
-      const distFromEdge = Math.min(
-        cube.userData.x,
-        N - 1 - cube.userData.x,
-        cube.userData.y,
-        N - 1 - cube.userData.y,
-        cube.userData.z,
-        N - 1 - cube.userData.z
-      );
-      wireframe.material.color.set(
-        getWireframeDefaultColor(
-          cube.userData.x,
-          cube.userData.y,
-          cube.userData.z
-        )
-      );
-      wireframe.material.opacity = Math.max(0.05, 0.8 - distFromEdge * 0.25);
+      wireframe.material.color.copy(wireframe.userData.baseColor);
+      wireframe.material.opacity = wireframe.userData.baseOpacity;
     }
   }
 }
 
 function showSuccessMessage(message) {
   const bar = document.getElementById("notification-bar");
-
-  // Cancel any previous timer to prevent it from hiding the new message prematurely
   if (notificationTimer) {
     clearTimeout(notificationTimer);
   }
-
   bar.textContent = message;
   bar.classList.add("show");
-
-  // Set a new timer to hide the bar and store its ID
   notificationTimer = setTimeout(() => {
     bar.classList.remove("show");
-    notificationTimer = null; // Clear the timer ID once it has run
+    notificationTimer = null;
   }, 3500);
 }
 
@@ -838,7 +869,7 @@ function updateCameraPosition() {
 function animate() {
   requestAnimationFrame(animate);
 
-  const dampingFactor = 0.2; // Increased for less sluggishness
+  const dampingFactor = 0.2;
   cameraAngleX += (targetCameraAngleX - cameraAngleX) * dampingFactor;
   cameraAngleY += (targetCameraAngleY - cameraAngleY) * dampingFactor;
   updateCameraPosition();
