@@ -258,34 +258,7 @@ body {
   }
   
   .level-navigation {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    background: rgba(20, 20, 20, 0.7);
-    padding: 15px;
-    border-radius: 4px;
-    opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-    pointer-events: none;
-  }
-  .level-navigation.visible {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .level-navigation input {
-    width: 50px;
-    background: #1a1a1a;
-    border: 1px solid #cccccc;
-    color: #f0f0f0;
-    text-align: center;
-    font-size: 16px;
-    border-radius: 4px;
-  }
-  .level-navigation button {
-    width: 30px;
-    height: 30px;
-    padding: 5px;
+    display: none; /* Hidden permanently as it was for creative mode */
   }
   
   #conflict-indicators {
@@ -343,7 +316,7 @@ body {
 
   .game-header {
     top: 15px;
-    width: auto; /* CORRECTED: Prevents the header from covering the top-left button */
+    width: auto; 
     display: flex;
     flex-direction: column;
     align-items: center;

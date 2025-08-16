@@ -29,7 +29,6 @@ let queens = [];
 let levelCompleted = false;
 let unlockStatus = 'none'; // none, good_enough, perfect
 let hoveredCube = null;
-let isCreativeMode = false;
 let isAssistMode = false; // State for hint mode, default off
 let particles;
 const isTouchDevice = 'ontouchstart' in window;
@@ -208,7 +207,6 @@ function setupEventListeners() {
 
   addButtonListener(document.getElementById("nextLevelBtn"), nextLevel);
   addButtonListener(document.getElementById("resetBtn"), resetLevel);
-  addButtonListener(document.getElementById("creativeModeBtn"), toggleCreativeMode);
   addButtonListener(document.getElementById("restoreSessionBtn"), restoreLastSession);
   
   addButtonListener(document.getElementById("prevLevelBtn"), () => navigateLevel(-1));
@@ -242,9 +240,6 @@ function onKeyDown(event) {
       break;
     case "KeyR":
       changeLayer("reset");
-      break;
-    case "KeyC":
-      toggleCreativeMode();
       break;
     default:
       return;
@@ -527,21 +522,14 @@ function startLevel(level, initialBoard = null) {
   document.querySelector(".controls-top-right").classList.remove("is-active");
   
   document.getElementById("levelInput").value = currentLevel;
-  document.getElementById("levelTitle").textContent = isCreativeMode
-    ? `Creative Mode`
-    : `Level ${currentLevel}`;
+  document.getElementById("levelTitle").textContent = `Level ${currentLevel}`;
 
   const target = getLevelTarget(N);
-  document.getElementById("targetQueens").textContent = isCreativeMode
-    ? "∞"
-    : target;
+  document.getElementById("targetQueens").textContent = target;
+
   document.getElementById("personalBest").textContent = bestScores[N] || 0;
 
   document.getElementById("nextLevelBtn").disabled = true;
-
-  document
-    .querySelector(".level-navigation")
-    .classList.toggle("visible", isCreativeMode);
 
   if (initialBoard) {
     board = initialBoard;
@@ -575,13 +563,6 @@ function navigateLevel(direction) {
   if (newLevel > 0) {
     startLevel(newLevel);
   }
-}
-
-function toggleCreativeMode() {
-  isCreativeMode = !isCreativeMode;
-  const btn = document.getElementById("creativeModeBtn");
-  btn.classList.toggle("active", isCreativeMode);
-  startLevel(currentLevel);
 }
 
 function initializeBoard() {
@@ -726,7 +707,6 @@ function updateDisplay() {
 
     if (isAssistMode) {
         if (board[z][y][x]) {
-            // CORRECTED: An occupied cube in assist mode should look like a default cube
             const distFromEdge = Math.min(x, N - 1 - x, y, N - 1 - y, z, N - 1 - z);
             wireframe.material.color.set(getWireframeDefaultColor(x, y, z));
             wireframe.material.opacity = Math.max(0.05, 0.8 - distFromEdge * 0.25);
@@ -779,8 +759,6 @@ function updateDisplay() {
     indicator.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24" fill="currentColor"><path d="M12 2L2 22h20L12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>`;
     conflictContainer.appendChild(indicator);
   }
-
-  if (isCreativeMode) return;
 
   if (conflictSet.size === 0 && queens.length > (bestScores[N] || 0)) {
     bestScores[N] = queens.length;
